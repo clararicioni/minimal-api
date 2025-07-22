@@ -6,7 +6,11 @@ using MinimalApi.Dominio.Servicos;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddScoped<IAdministradorServico, AdministradorServico>();
+
+builder.Services.AddEndpointsApiExplorer(); // Necessário para Minimal APIs
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<DbContexto>(options =>
 {
@@ -15,6 +19,7 @@ builder.Services.AddDbContext<DbContexto>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("mysql"))
     );
 });
+
 var app = builder.Build();
 
 app.MapGet("/", () => "Ola mundo!");
@@ -27,5 +32,7 @@ app.MapPost("/login", ([FromBody] LoginDTO loginDTO, IAdministradorServico admin
         return Results.Unauthorized();
 });
 
-app.Run();
+app.UseSwagger();
+app.UseSwaggerUI();
 
+app.Run();
