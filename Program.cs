@@ -12,13 +12,14 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.OpenApi.Models;
 
 #region Builder 
 var builder = WebApplication.CreateBuilder(args);
 
-var key = builder.Configuration.GetSection("Jwt").ToString();
+var key = builder.Configuration.GetValue<string>("Jwt");
 if (string.IsNullOrEmpty(key))
-    key = string.Empty;
+    throw new Exception("A chave JWT não está configurada corretamente.");
 
 builder.Services.AddAuthentication(option =>
 {
@@ -28,16 +29,45 @@ builder.Services.AddAuthentication(option =>
 {
     option.TokenValidationParameters = new TokenValidationParameters
     {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        ClockSkew = TimeSpan.Zero
     };
 });
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IAdministradorServico, AdministradorServico>();
 builder.Services.AddScoped<IVeiculoServico, VeiculoServico>();
 
-builder.Services.AddEndpointsApiExplorer(); 
-builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+{
+    Name = "Authorization",
+    Type = SecuritySchemeType.Http,
+    Scheme = "bearer",
+    BearerFormat = "JWT",
+    In = ParameterLocation.Header,
+    Description = "Insira o token JWT desta maneira: {Seu token}"
+});
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme{
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 builder.Services.AddDbContext<DbContexto>(options =>
 {
@@ -51,7 +81,7 @@ var app = builder.Build();
 #endregion
 
 #region Home
-app.MapGet("/", () => Results.Json(new Home())).WithTags("Home");
+app.MapGet("/", () => Results.Json(new Home())).AllowAnonymous().WithTags("Home");
 #endregion
 
 #region Administradores
@@ -80,7 +110,8 @@ string GerarTokenJwt(Administrador administrador)
 app.MapPost("/administradores/login", ([FromBody] LoginDTO loginDTO, IAdministradorServico administradorServico) =>
 {
     var adm = administradorServico.Login(loginDTO);
-    if (adm != null){
+    if (adm != null)
+    {
         string token = GerarTokenJwt(adm);
         return Results.Ok(new AdministradorLogado
         {
@@ -88,9 +119,10 @@ app.MapPost("/administradores/login", ([FromBody] LoginDTO loginDTO, IAdministra
             Perfil = adm.Perfil,
             Token = token
         });
-    } else
+    }
+    else
         return Results.Unauthorized();
-}).WithTags("Administradores");
+}).AllowAnonymous().WithTags("Administradores");
 
 app.MapPost("/administradores", ([FromBody] AdministradorDTO administradorDTO, IAdministradorServico administradorServico) =>
 {
