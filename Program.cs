@@ -6,6 +6,7 @@ using MinimalApi.Dominio.Servicos;
 using Microsoft.AspNetCore.Mvc;
 using MinimalApi.Dominio.ModelViews;
 using MinimalApi.Dominio.Entidades;
+using MinimalApi.Dominio.Enums;
 
 #region Builder 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,11 +39,53 @@ app.MapPost("/administradores/login", ([FromBody] LoginDTO loginDTO, IAdministra
         return Results.Ok("Login com sucesso");
     else
         return Results.Unauthorized();
-}).WithTags("Administrador");
+}).WithTags("Administradores");
+
+app.MapPost("/administradores", ([FromBody] AdministradorDTO administradorDTO, IAdministradorServico administradorServico) =>
+{
+    var validacao = new ErrosDeValidacao
+    {
+        Mensagens = new List<string>()
+    };
+
+    if (String.IsNullOrEmpty(administradorDTO.Email))
+        validacao.Mensagens.Add("O email nao pode ser vazio.");
+    if (String.IsNullOrEmpty(administradorDTO.Senha))
+        validacao.Mensagens.Add("A senha não pode ficar em branco.");
+    if (administradorDTO.Perfil == null)
+        validacao.Mensagens.Add("O perfil não pode ficar em branco.");
+
+    if (validacao.Mensagens.Count > 0)
+        return Results.BadRequest(validacao);
+
+    var adm = new Administrador
+    {
+        Email = administradorDTO.Email,
+        Senha = administradorDTO.Senha,
+        Perfil = administradorDTO.Perfil.ToString() ?? Perfil.editor.ToString()
+    };
+
+    administradorServico.Incluir(adm);
+    return Results.Created($"/administradores/{adm.Id}", adm);
+}).WithTags("Administradores");
+
+app.MapGet("/administradores", ([FromQuery] int? pagina, IAdministradorServico administradorServico) =>
+{
+    return Results.Ok(administradorServico.Todos(pagina));
+}).WithTags("Administradores");
+
+app.MapGet("/administradores/{id}", ([FromRoute] int id, IAdministradorServico administradorServico) =>
+{
+    var administrador = administradorServico.BuscaPorId(id);
+    if (administrador == null)
+        return Results.NotFound();
+    return Results.Ok(administrador);
+}).WithTags("Administradores");
 #endregion
 
 #region Veiculos
-ErrosDeValidacao validaDTO(VeiculoDTO veiculoDTO) {
+ErrosDeValidacao validaDTO(VeiculoDTO veiculoDTO)
+{
     var validacao = new ErrosDeValidacao
     {
         Mensagens = new List<string>()
@@ -57,6 +100,7 @@ ErrosDeValidacao validaDTO(VeiculoDTO veiculoDTO) {
 
     return validacao;
 }
+
 app.MapPost("/veiculos", ([FromBody] VeiculoDTO veiculoDTO, IVeiculoServico veiculoServico) =>
 {
     var validacao = validaDTO(veiculoDTO);
@@ -115,7 +159,7 @@ app.MapDelete("/veiculos/{id}", ([FromRoute] int id, IVeiculoServico veiculoServ
         return Results.NotFound();
 
     veiculoServico.Apagar(veiculo);
-    
+
     return Results.NoContent();
 }).WithTags("Veiculo");
 #endregion
