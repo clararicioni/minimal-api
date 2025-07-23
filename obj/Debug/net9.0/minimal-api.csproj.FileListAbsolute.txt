@@ -105,3 +105,11 @@ C:\users\clara\downloads\minimal-api\obj\Debug\net9.0\refint\minimal-api.dll
 C:\users\clara\downloads\minimal-api\obj\Debug\net9.0\minimal-api.pdb
 C:\users\clara\downloads\minimal-api\obj\Debug\net9.0\minimal-api.genruntimeconfig.cache
 C:\users\clara\downloads\minimal-api\obj\Debug\net9.0\ref\minimal-api.dll
+C:\users\clara\downloads\minimal-api\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\users\clara\downloads\minimal-api\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
+C:\users\clara\downloads\minimal-api\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\users\clara\downloads\minimal-api\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
+C:\users\clara\downloads\minimal-api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.dll
+C:\users\clara\downloads\minimal-api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\users\clara\downloads\minimal-api\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
+C:\users\clara\downloads\minimal-api\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
