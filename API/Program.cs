@@ -238,7 +238,7 @@ app.MapGet("/veiculos", ([FromQuery] int? pagina, IVeiculoServico veiculoServico
 {
     var veiculos = veiculoServico.Todos(pagina);
     return Results.Ok(veiculos);
-}).RequireAuthorization().WithTags("Veiculo");
+}).RequireAuthorization().WithTags("Veiculos");
 
 app.MapGet("/veiculos/{id}", ([FromRoute] int id, IVeiculoServico veiculoServico) =>
 {
